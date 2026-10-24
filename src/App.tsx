@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+import { SEOUpdater } from './components/SEOUpdater';
 import { HomePage } from './pages/HomePage';
 import { UaeCvCheckerPage } from './pages/UaeCvCheckerPage';
 import { SaudiCvCheckerPage } from './pages/SaudiCvCheckerPage';
@@ -28,6 +29,7 @@ export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <SEOUpdater />
       <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-brand-100 selection:text-brand-900">
         <Navbar />
         <main className="flex-1 py-8">
