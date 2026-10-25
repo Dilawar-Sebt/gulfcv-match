@@ -3,12 +3,15 @@ import { CvInputMode, AnalysisResult } from '../types';
 import { CvInputSection } from '../components/CvInputSection';
 import { JobDescriptionSection } from '../components/JobDescriptionSection';
 import { ScoreGauge } from '../components/ScoreGauge';
+import { KeywordGroupSection } from '../components/KeywordGroupSection';
+import { SmartTailoringCard } from '../components/SmartTailoringCard';
 import { KeywordList } from '../components/KeywordList';
 import { SuggestionsCard } from '../components/SuggestionsCard';
 import { SummaryDraftCard } from '../components/SummaryDraftCard';
 import { PrintReportView } from '../components/PrintReportView';
 import { parseCvFile } from '../lib/fileParser';
 import { calculateMatch } from '../lib/matcher';
+import { groupKeywords, generateTailoringTips } from '../lib/keywordGrouping';
 import { generateSuggestions } from '../lib/suggestionsEngine';
 import { MIN_INPUT_CHAR_LENGTH } from '../lib/constants';
 import {
@@ -21,6 +24,10 @@ import {
   CheckCircle2,
   FileSearch,
   Lock,
+  Layers,
+  ChevronDown,
+  HelpCircle,
+  Award,
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
@@ -37,6 +44,9 @@ export const HomePage: React.FC = () => {
   const [cvError, setCvError] = useState<string | undefined>();
   const [jdError, setJdError] = useState<string | undefined>();
   const [result, setResult] = useState<AnalysisResult | null>(null);
+
+  // FAQ accordion state
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -103,6 +113,12 @@ export const HomePage: React.FC = () => {
       // Deterministic matching
       const matchResult = calculateMatch(effectiveCvText, jdText);
 
+      // JobSprout-style Keyword Grouping into Semantic Clusters
+      const keywordClusters = groupKeywords(matchResult.allKeywords);
+
+      // JobSprout-style Smart Tailoring & Rewrite Tips
+      const tailoringTips = generateTailoringTips(keywordClusters);
+
       // Suggestions & section detection
       const { suggestions, sections, summaryDraft } = generateSuggestions(
         effectiveCvText,
@@ -115,6 +131,8 @@ export const HomePage: React.FC = () => {
         matchedKeywords: matchResult.matchedKeywords,
         missingKeywords: matchResult.missingKeywords,
         allKeywords: matchResult.allKeywords,
+        keywordClusters,
+        tailoringTips,
         suggestions,
         detectedSections: sections,
         summaryDraft,
@@ -159,33 +177,59 @@ export const HomePage: React.FC = () => {
     window.print();
   };
 
+  const faqs = [
+    {
+      q: 'What is GulfCV Match and how does it work?',
+      a: 'GulfCV Match is a free, local-first web utility built to compare your CV against target job descriptions for positions in the UAE, Saudi Arabia, Qatar, and the wider Gulf. It extracts keywords, clusters them into functional groups (Tools, Domain, Certifications, Soft Skills, and Regional Compliance), and gives you an exact text-overlap percentage without sending your data to any server.',
+    },
+    {
+      q: 'How does GulfCV Match replicate JobSprout-style keyword grouping?',
+      a: 'Like modern AI career platforms such as JobSprout, GulfCV Match does not simply count isolated words. It groups requirements into thematic skill clusters (such as Software Tools, Functional Expertise, and Certifications) and generates actionable STAR-format bullet point tailoring tips to help you fill gaps naturally.',
+    },
+    {
+      q: 'Is GulfCV Match 100% free with no hidden subscriptions?',
+      a: 'Yes! GulfCV Match is completely free. There are no paid credits, no subscriptions, no premium paywalls, and no credit card required. You get unlimited CV scans and unlimited PDF report exports.',
+    },
+    {
+      q: 'Does GulfCV Match upload or store my personal resume data?',
+      a: 'Never. GulfCV Match is built with a strict Zero-Server architecture. Your PDF or DOCX file is processed entirely in your web browser RAM using client-side WebAssembly and JavaScript. When you close your browser tab or click Clear All, your data is wiped permanently.',
+    },
+    {
+      q: 'Can GulfCV Match optimize CVs for UAE and Saudi Arabia ATS systems?',
+      a: 'Yes! We have built-in regional knowledge covering UAE visa statuses, UAE driving licenses, Saudi Vision 2030 keywords, Saudization (Nitaqat), and professional registrations like SCE (Saudi Council of Engineers) and SOCPA.',
+    },
+  ];
+
   return (
     <div className="space-y-12">
-      {/* Hero Section */}
-      <section className="text-center space-y-4 max-w-3xl mx-auto px-4 pt-6 no-print">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-50 border border-brand-200 text-brand-900 text-xs font-semibold">
+      {/* Hero Section - Optimized for "GulfCV Match" SERP Ranking */}
+      <section className="text-center space-y-5 max-w-3xl mx-auto px-4 pt-6 no-print">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-50 border border-brand-200 text-brand-900 text-xs font-semibold shadow-2xs">
           <Sparkles className="w-4 h-4 text-brand-600" />
-          <span>Local-First ATS Keyword Matcher for the Gulf Region</span>
+          <span>GulfCV Match • Smart ATS Resume Matcher & Keyword Grouping</span>
         </div>
 
         <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
-          Match Your CV Against Any <span className="text-brand-600">Gulf Job Advert</span>
+          GulfCV Match: Free Local-First <span className="text-brand-600">CV & Job Description Matcher</span>
         </h1>
 
         <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
-          Instantly check how closely your CV matches the skills and terminology in target job postings across the UAE, Saudi Arabia, Qatar, and Gulf markets. 100% private in your browser.
+          Instantly benchmark your CV against target job advertisements in Dubai, Abu Dhabi, Riyadh, and Doha. Powered by intelligent keyword grouping, regional Gulf compliance checks, and 100% in-browser privacy.
         </p>
 
         {/* Quick Highlights */}
-        <div className="pt-2 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 font-medium">
-          <span className="flex items-center gap-1.5">
-            <Lock className="w-4 h-4 text-emerald-600" /> Zero Server Storage
+        <div className="pt-2 flex flex-wrap items-center justify-center gap-5 text-xs text-slate-600 font-medium">
+          <span className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs">
+            <Lock className="w-3.5 h-3.5 text-emerald-600" /> 100% Client-Side Privacy
           </span>
-          <span className="flex items-center gap-1.5">
-            <Zap className="w-4 h-4 text-brand-600" /> Instant Deterministic Math
+          <span className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs">
+            <Layers className="w-3.5 h-3.5 text-indigo-600" /> JobSprout Keyword Grouping
           </span>
-          <span className="flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-indigo-600" /> Free Public Utility
+          <span className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs">
+            <Zap className="w-3.5 h-3.5 text-brand-600" /> Instant Match Percentage
+          </span>
+          <span className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Always 100% Free
           </span>
         </div>
       </section>
@@ -225,7 +269,7 @@ export const HomePage: React.FC = () => {
             {isAnalyzing ? (
               <>
                 <RefreshCw className="w-4 h-4 animate-spin" />
-                Analyzing Keywords...
+                Analyzing with GulfCV Match...
               </>
             ) : isParsingFile ? (
               <>
@@ -235,7 +279,7 @@ export const HomePage: React.FC = () => {
             ) : (
               <>
                 <FileSearch className="w-5 h-5" />
-                Analyze My CV
+                Analyze My CV with GulfCV Match
               </>
             )}
           </button>
@@ -263,11 +307,11 @@ export const HomePage: React.FC = () => {
           {/* Action Bar for Results */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 text-white p-4 sm:p-5 rounded-2xl no-print shadow-sm">
             <div>
-              <span className="text-xs uppercase font-bold text-slate-400 tracking-wider">
-                Analysis Completed
+              <span className="text-xs uppercase font-bold text-brand-300 tracking-wider">
+                GulfCV Match Completed
               </span>
               <p className="text-sm font-semibold text-slate-200">
-                Review your keyword match score and practical recommendations below.
+                Review your overall score, skill cluster breakdown, and tailoring recommendations.
               </p>
             </div>
 
@@ -297,6 +341,12 @@ export const HomePage: React.FC = () => {
             {/* Score Gauge with Formula Breakdown */}
             <ScoreGauge scoreDetails={result.scoreDetails} />
 
+            {/* JobSprout-style Keyword Grouping & Semantic Skill Clusters */}
+            <KeywordGroupSection clusters={result.keywordClusters} />
+
+            {/* JobSprout-style AI Tailoring Assistant */}
+            <SmartTailoringCard tips={result.tailoringTips} />
+
             {/* Keyword Breakdown Table */}
             <KeywordList
               matchedKeywords={result.matchedKeywords}
@@ -316,47 +366,93 @@ export const HomePage: React.FC = () => {
         </section>
       )}
 
-      {/* Feature & FAQ Educational Section */}
+      {/* Feature Section targeting "GulfCV Match" on Google SERP */}
       <section className="max-w-5xl mx-auto px-4 pt-12 space-y-8 no-print border-t border-slate-200">
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <h2 className="text-2xl font-bold text-slate-900">
-            Why Gulf Job Seekers Choose GulfCV Match
+            Why Job Seekers Rank GulfCV Match as Their Top Career Utility
           </h2>
           <p className="text-sm text-slate-600">
-            Designed specifically for competitive job markets in Dubai, Abu Dhabi, Riyadh, Doha, and Kuwait City.
+            Engineered specifically for the recruitment realities of Dubai, Abu Dhabi, Riyadh, and Gulf multinational employers.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-2 shadow-sm">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-2.5 shadow-sm">
             <div className="w-10 h-10 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center">
               <ShieldCheck className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold text-slate-900">Strict Client-Side Privacy</h3>
+            <h3 className="text-base font-bold text-slate-900">Zero-Server Privacy Guarantee</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Your resume text and contact information never touch external servers or cloud databases. Processing executes entirely inside your local web browser session.
+              Unlike cloud-hosted resume matchers that store your personal details, GulfCV Match parses and scores your CV 100% inside your browser RAM.
             </p>
           </div>
 
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-2 shadow-sm">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
-              <Zap className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-slate-900">Deterministic & Honest</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              No black-box hallucinations or fabricated rankings. Our algorithm clearly displays every matched term, missing term, and the exact arithmetic formula used.
-            </p>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-2 shadow-sm">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-2.5 shadow-sm">
             <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center">
-              <Sparkles className="w-5 h-5" />
+              <Layers className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold text-slate-900">Multi-Word Phrase Recognition</h3>
+            <h3 className="text-base font-bold text-slate-900">Semantic Keyword Grouping</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Detects domain phrases such as Accounts Payable, Inventory Management, VAT Filing, and tools like Power BI, Node.js, and C++.
+              Replicating modern matching algorithms (like JobSprout), keywords are clustered into Tools, Functional Expertise, and Soft Skills rather than raw keyword dumps.
             </p>
           </div>
+
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-2.5 shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+              <Award className="w-5 h-5" />
+            </div>
+            <h3 className="text-base font-bold text-slate-900">Gulf Job Market Alignment</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Tailored specifically for GCC job boards (LinkedIn, Bayt, Gulf Connexions, Naukrigulf) with custom checks for UAE driving licenses and Vision 2030 skills.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* SEO & FAQ Accordion Section for Rich Google SERP Snippets */}
+      <section className="max-w-4xl mx-auto px-4 pt-6 space-y-6 no-print">
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
+            <HelpCircle className="w-3.5 h-3.5" />
+            <span>Frequently Asked Questions</span>
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900">
+            Frequently Asked Questions About GulfCV Match
+          </h2>
+          <p className="text-xs text-slate-500">
+            Everything you need to know about optimizing your CV for Gulf ATS algorithms.
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          {faqs.map((faq, index) => {
+            const isOpen = openFaqIndex === index;
+            return (
+              <div
+                key={index}
+                className="rounded-2xl border border-slate-200 bg-white overflow-hidden transition-all shadow-2xs"
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenFaqIndex(isOpen ? null : index)}
+                  className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 font-bold text-sm text-slate-900 hover:bg-slate-50 transition-colors"
+                >
+                  <span>{faq.q}</span>
+                  <ChevronDown
+                    className={`w-4 h-4 text-slate-500 shrink-0 transition-transform duration-200 ${
+                      isOpen ? 'transform rotate-180 text-brand-600' : ''
+                    }`}
+                  />
+                </button>
+                {isOpen && (
+                  <div className="px-5 pb-5 pt-1 text-xs text-slate-600 leading-relaxed border-t border-slate-100 bg-slate-50/50">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </section>
     </div>

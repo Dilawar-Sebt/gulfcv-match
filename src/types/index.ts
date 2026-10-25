@@ -1,9 +1,20 @@
 export type CvInputMode = 'upload' | 'paste';
 
+export type KeywordCategory =
+  | 'tools'
+  | 'domain'
+  | 'certifications'
+  | 'soft_skills'
+  | 'compliance'
+  | 'technical'
+  | 'tool'
+  | 'soft_skill'
+  | 'general';
+
 export interface KeywordMatch {
   term: string;
   matched: boolean;
-  category?: 'technical' | 'tool' | 'domain' | 'soft_skill' | 'general';
+  category?: KeywordCategory;
   frequencyInJd: number;
   frequencyInCv: number;
 }
@@ -14,6 +25,24 @@ export interface MatchScoreDetails {
   matchedKeywordsCount: number;
   missingKeywordsCount: number;
   formulaDescription: string;
+}
+
+export interface KeywordCluster {
+  id: string;
+  title: string;
+  iconName: string;
+  description: string;
+  totalCount: number;
+  matchedCount: number;
+  matchPercentage: number;
+  keywords: KeywordMatch[];
+}
+
+export interface TailoringTip {
+  clusterTitle: string;
+  missingKeywords: string[];
+  suggestedAction: string;
+  sampleBullet: string;
 }
 
 export type SuggestionSeverity = 'tip' | 'improvement' | 'strength';
@@ -32,6 +61,8 @@ export interface AnalysisResult {
   matchedKeywords: KeywordMatch[];
   missingKeywords: KeywordMatch[];
   allKeywords: KeywordMatch[];
+  keywordClusters: KeywordCluster[];
+  tailoringTips: TailoringTip[];
   suggestions: SuggestionItem[];
   detectedSections: {
     experience: boolean;

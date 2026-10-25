@@ -66,7 +66,7 @@ describe('CV Analysis Main User Workflow', () => {
 
     // Verify Results Dashboard appears
     await waitFor(() => {
-      expect(screen.getByText(/Analysis Completed/i)).toBeInTheDocument();
+      expect(screen.getByText(/(Analysis|GulfCV Match) Completed/i)).toBeInTheDocument();
       expect(screen.getByText(/Estimated Keyword Overlap Analysis/i)).toBeInTheDocument();
     });
 
@@ -102,7 +102,7 @@ describe('CV Analysis Main User Workflow', () => {
 
     expect((cvTextarea as HTMLTextAreaElement).value).toBe('');
     expect((jdTextarea as HTMLTextAreaElement).value).toBe('');
-    expect(screen.queryByText(/Analysis Completed/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/(Analysis|GulfCV Match) Completed/i)).not.toBeInTheDocument();
   });
 
   it('renders user text safely without executing HTML/script tags (XSS Prevention)', async () => {
@@ -124,7 +124,7 @@ describe('CV Analysis Main User Workflow', () => {
     fireEvent.click(analyzeBtn);
 
     await waitFor(() => {
-      expect(screen.getByText(/Analysis Completed/i)).toBeInTheDocument();
+      expect(screen.getByText(/(Analysis|GulfCV Match) Completed/i)).toBeInTheDocument();
     });
 
     // Script must NOT have executed

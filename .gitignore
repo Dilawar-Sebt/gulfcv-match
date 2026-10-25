@@ -34,3 +34,5 @@ dist-ssr
 *.doc
 cv-samples/
 temp/
+
+.vercel
