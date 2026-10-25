@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://gulfcv-match.vercel.app/sitemap.xml
+Sitemap: https://dilawar-sebt.github.io/gulfcv-match/sitemap.xml
